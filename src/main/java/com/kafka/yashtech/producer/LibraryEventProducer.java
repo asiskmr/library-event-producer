@@ -58,7 +58,7 @@ public class LibraryEventProducer {
         });
     }
 
-    public void sendEvent_Approch2(LibraryEvent libraryEvent) throws JsonProcessingException {
+    public ListenableFuture<SendResult<Integer, String>> sendEvent_Approch2(LibraryEvent libraryEvent) throws JsonProcessingException {
 
         Integer key = libraryEvent.getLibraryEventId();
         String value;
@@ -80,7 +80,7 @@ public class LibraryEventProducer {
                 handleSuccess(key, value, result);
             }
         });
-
+        return listenableFuture;
     }
 
     private ProducerRecord<Integer, String> buildProducerRecord(Integer key, String value, String topic) {
@@ -114,7 +114,7 @@ public class LibraryEventProducer {
 
     private void handleFailure(Integer key, String value, Throwable ex) {
 
-        log.error("Error in sending the message and the exception : {} ",ex);
+        log.error("Error in sending the message and the exception : {} ",ex.getMessage());
 
         try{
             throw ex;

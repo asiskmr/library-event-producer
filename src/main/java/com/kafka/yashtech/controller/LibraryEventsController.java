@@ -10,9 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+
+import javax.validation.Valid;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -24,16 +27,32 @@ public class LibraryEventsController {
     private LibraryEventProducer libraryEventProducer;
 
     @PostMapping("/v1/libraryevent")
-    public ResponseEntity<LibraryEvent> postLibraryEvent(@RequestBody LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException, TimeoutException {
+    public ResponseEntity<LibraryEvent> postLibraryEvent( @Valid @RequestBody LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException, TimeoutException {
 
         log.info("before send library events");
         libraryEvent.setLibraryEventType(LibraryEventType.NEW);
         //libraryEventProducer.sendEvent(libraryEvent);
-       // SendResult<Integer, String> sendResult = libraryEventProducer.sendLibraryEventSync(libraryEvent);
+        //SendResult<Integer, String> sendResult = libraryEventProducer.sendLibraryEventSync(libraryEvent);
 
         libraryEventProducer.sendEvent_Approch2(libraryEvent);
        // log.info("SendResult is {} ", sendResult.toString());
         log.info("after send library events");
         return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
+    }
+
+    @PutMapping("/v1/libraryevent")
+    public ResponseEntity<?> putLibraryEvent( @Valid @RequestBody LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException, TimeoutException {
+
+        log.info("before send library events");
+
+        if(libraryEvent.getLibraryEventId() == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please pass the library id");
+        }
+        libraryEvent.setLibraryEventType(LibraryEventType.UPDATE);
+
+        libraryEventProducer.sendEvent_Approch2(libraryEvent);
+        // log.info("SendResult is {} ", sendResult.toString());
+        log.info("after send library events");
+        return ResponseEntity.status(HttpStatus.OK).body(libraryEvent);
     }
 }
