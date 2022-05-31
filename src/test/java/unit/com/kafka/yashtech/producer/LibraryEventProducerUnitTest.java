@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
@@ -28,6 +29,7 @@ import static org.mockito.ArgumentMatchers.isA;
 
 
 @ExtendWith(MockitoExtension.class)
+@EmbeddedKafka(topics = {"library-events"}, partitions = 3)
 public class LibraryEventProducerUnitTest {
 
     @Mock
@@ -39,7 +41,7 @@ public class LibraryEventProducerUnitTest {
     LibraryEventProducer eventProducer;
 
     @Test
-    void sendEvent_Approch2_failure() throws JsonProcessingException, ExecutionException, InterruptedException {
+    void sendEvent_Approch2_failure(){
 
         Book book = Book.builder()
                 .bookId(123)
@@ -77,10 +79,10 @@ public class LibraryEventProducerUnitTest {
 
         SettableListenableFuture future = new SettableListenableFuture();
 
-        ProducerRecord<Integer, String> producerRecord = new ProducerRecord<Integer, String>("library-events", libraryEvent.getLibraryEventId(), value);
+        ProducerRecord<Integer, String> producerRecord = new ProducerRecord<>("library-events", libraryEvent.getLibraryEventId(), value);
         RecordMetadata recordMetadata = new RecordMetadata(new TopicPartition("library-events", 1), 1, 1, 242, 1 , 2);
 
-        SendResult<Integer, String> sendResult = new SendResult<Integer, String>(producerRecord, recordMetadata);
+        SendResult<Integer, String> sendResult = new SendResult<>(producerRecord, recordMetadata);
         future.set(sendResult);
         Mockito.when(kafkaTemplate.send(isA(ProducerRecord.class))).thenReturn(future);
 
